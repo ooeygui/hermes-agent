@@ -1155,6 +1155,12 @@ def _maybe_wrap_anthropic(
     except ImportError:
         pass
     try:
+        from agent.foundry_local_adapter import FoundryLocalClient
+        if _safe_isinstance(client_obj, FoundryLocalClient):
+            return client_obj
+    except ImportError:
+        pass
+    try:
         from agent.copilot_acp_client import CopilotACPClient
         if _safe_isinstance(client_obj, CopilotACPClient):
             return client_obj
@@ -1435,6 +1441,10 @@ def _resolve_api_key_provider() -> Tuple[Optional[OpenAI], Optional[str]]:
 
                 if is_native_gemini_base_url(base_url):
                     return GeminiNativeClient(api_key=api_key, base_url=base_url), model
+            if provider_id in {"foundry-local", "foundry", "foundrylocal"}:
+                from agent.foundry_local_adapter import FoundryLocalClient
+
+                return FoundryLocalClient(api_key=api_key, base_url=base_url), model
             extra = {}
             if base_url_host_matches(base_url, "api.kimi.com"):
                 extra["default_headers"] = {"User-Agent": "claude-code/0.1.0"}
@@ -1472,6 +1482,10 @@ def _resolve_api_key_provider() -> Tuple[Optional[OpenAI], Optional[str]]:
 
             if is_native_gemini_base_url(base_url):
                 return GeminiNativeClient(api_key=api_key, base_url=base_url), model
+        if provider_id in {"foundry-local", "foundry", "foundrylocal"}:
+            from agent.foundry_local_adapter import FoundryLocalClient
+
+            return FoundryLocalClient(api_key=api_key, base_url=base_url), model
         extra = {}
         if base_url_host_matches(base_url, "api.kimi.com"):
             extra["default_headers"] = {"User-Agent": "claude-code/0.1.0"}
@@ -3208,6 +3222,16 @@ def _to_async_client(sync_client, model: str, is_vision: bool = False):
 
         if isinstance(sync_client, GeminiNativeClient):
             return AsyncGeminiNativeClient(sync_client), model
+    except ImportError:
+        pass
+    try:
+        from agent.foundry_local_adapter import (
+            FoundryLocalClient,
+            AsyncFoundryLocalClient,
+        )
+
+        if isinstance(sync_client, FoundryLocalClient):
+            return AsyncFoundryLocalClient(sync_client), model
     except ImportError:
         pass
     try:
