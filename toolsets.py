@@ -222,6 +222,24 @@ TOOLSETS = {
     # "honcho" toolset removed — Honcho is now a memory provider plugin.
     # Tools are injected via MemoryManager, not the toolset system.
 
+    "blackboard": {
+        "description": (
+            "Shared blackboard for multi-agent collaboration. Agents create topics, "
+            "write entries, watch for updates, and poll notifications. "
+            "Requires: pip install eclipse-zenoh"
+        ),
+        "tools": [
+            "blackboard_create_topic",
+            "blackboard_list_topics",
+            "blackboard_get_topic",
+            "blackboard_write_entry",
+            "blackboard_update_metadata",
+            "blackboard_watch",
+            "blackboard_poll_notifications",
+        ],
+        "includes": [],
+    },
+
     "homeassistant": {
         "description": "Home Assistant smart home control and monitoring",
         "tools": ["ha_list_entities", "ha_get_state", "ha_list_services", "ha_call_service"],
