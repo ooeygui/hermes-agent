@@ -1,4 +1,4 @@
-"""SQLite cache for the Zenoh blackboard — durable cold storage + query replies."""
+"""SQLite cache for the blackboard — durable cold storage + query replies."""
 
 from __future__ import annotations
 

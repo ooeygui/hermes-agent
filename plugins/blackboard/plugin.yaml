@@ -1,0 +1,10 @@
+name: blackboard
+version: "0.1.0"
+description: >
+  Shared blackboard for single-machine and multi-agent collaboration.
+  Works out of the box with local SQLite storage (no extra dependencies).
+  Add eclipse-zenoh and set backend: zenoh in config to enable real-time
+  distributed sync across multiple machines.
+author: hermes-agent contributors
+license: Apache-2.0
+kind: plugin

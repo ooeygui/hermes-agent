@@ -1,4 +1,8 @@
-"""Subscription watcher and notification queue for the Zenoh blackboard."""
+"""Subscription watcher and notification queue for the blackboard.
+
+Works with any BlackboardBackend — LocalBackend fires in-process callbacks,
+ZenohBackend fires across peers.
+"""
 
 from __future__ import annotations
 
@@ -6,12 +10,11 @@ import json
 import logging
 import queue
 import threading
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Callable, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
-# Maximum notifications buffered per session before old ones are dropped.
 _MAX_QUEUE = 100
 
 
@@ -60,11 +63,15 @@ class BlackboardWatcher:
 
     A single instance is shared across all Hermes sessions within the process.
     Notifications are routed to the correct session queue by session_id.
+
+    Works with any BlackboardBackend — the backend's subscribe() method is
+    called to attach the callback; the callback fires whether the backend is
+    local or distributed.
     """
 
     def __init__(self) -> None:
         self._lock = threading.Lock()
-        # session_id → {slug → subscriber_handle}
+        # session_id → {slug → backend subscription handle}
         self._subscriptions: Dict[str, Dict[str, Any]] = {}
         # session_id → NotificationQueue
         self._queues: Dict[str, NotificationQueue] = {}
@@ -77,20 +84,21 @@ class BlackboardWatcher:
                 self._queues[session_id] = NotificationQueue()
                 self._subscriptions[session_id] = {}
 
-    def deregister_session(self, session_id: str, blackboard=None) -> None:
+    def deregister_session(self, session_id: str, backend=None) -> None:
         with self._lock:
-            subs = self._subscriptions.pop(session_id, {})
+            handles = self._subscriptions.pop(session_id, {})
             self._queues.pop(session_id, None)
-        if blackboard is not None:
-            for key_expr in subs:
-                blackboard.unsubscribe(key_expr)
+        if backend is not None:
+            for handle in handles.values():
+                backend.unsubscribe(handle)
 
     def watch_topic(
         self,
         session_id: str,
         slug: str,
         topic_name: str,
-        blackboard,
+        backend,
+        namespace: str,
     ) -> bool:
         """Subscribe this session to a topic's entry stream.
 
@@ -98,17 +106,16 @@ class BlackboardWatcher:
         """
         self.register_session(session_id)
         with self._lock:
-            subs = self._subscriptions[session_id]
-            if slug in subs:
-                return False  # already watching
+            if slug in self._subscriptions[session_id]:
+                return False
             self._topic_names[slug] = topic_name
 
-        key_expr = f"{blackboard._namespace}/entries/{slug}/**"
+        key_pattern = f"{namespace}/entries/{slug}/**"
         callback = self._make_callback(session_id, slug)
-        sub = blackboard.subscribe(key_expr, callback)
+        handle = backend.subscribe(key_pattern, callback)
 
         with self._lock:
-            self._subscriptions[session_id][slug] = sub
+            self._subscriptions[session_id][slug] = handle
         return True
 
     def _make_callback(self, session_id: str, slug: str) -> Callable:
@@ -129,7 +136,6 @@ class BlackboardWatcher:
         return _on_sample
 
     def poll(self, session_id: str, limit: int = 10) -> list:
-        """Drain and return up to *limit* pending notifications for a session."""
         with self._lock:
             q = self._queues.get(session_id)
         if q is None:
@@ -137,7 +143,6 @@ class BlackboardWatcher:
         return q.drain(limit=limit)
 
     def format_notifications(self, notifications: list) -> str:
-        """Format a list of Notification objects as a readable summary."""
         if not notifications:
             return "No new notifications."
         lines = [f"📋 {len(notifications)} blackboard update(s):"]
