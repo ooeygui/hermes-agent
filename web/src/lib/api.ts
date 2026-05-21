@@ -340,6 +340,20 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name }),
     }),
+
+  // Blackboard
+  getBlackboardTopics: (search = "", limit = 200) =>
+    fetchJSON<BlackboardTopicsResponse>(
+      `/api/blackboard/topics?search=${encodeURIComponent(search)}&limit=${limit}`,
+    ),
+  getBlackboardTopic: (slug: string, limit = 50, since = "") =>
+    fetchJSON<BlackboardTopicDetail>(
+      `/api/blackboard/topics/${encodeURIComponent(slug)}?limit=${limit}&since=${encodeURIComponent(since)}`,
+    ),
+  getBlackboardEntries: (slug: string, limit = 50, since = "") =>
+    fetchJSON<BlackboardEntriesResponse>(
+      `/api/blackboard/topics/${encodeURIComponent(slug)}/entries?limit=${limit}&since=${encodeURIComponent(since)}`,
+    ),
 };
 
 export interface ActionResponse {
@@ -812,4 +826,38 @@ export interface AgentPluginUpdateResponse {
 export interface PluginProvidersPutRequest {
   memory_provider?: string;
   context_engine?: string;
+}
+
+// Blackboard types
+export interface BlackboardTopic {
+  slug: string;
+  name: string;
+  description: string;
+  created_by: string;
+  created_at: string;
+}
+
+export interface BlackboardEntry {
+  id: string;
+  slug: string;
+  content: string;
+  author: string;
+  role: string;
+  timestamp: string;
+}
+
+export interface BlackboardTopicsResponse {
+  topics: BlackboardTopic[];
+  total: number;
+}
+
+export interface BlackboardTopicDetail extends BlackboardTopic {
+  entries: BlackboardEntry[];
+  metadata: Record<string, unknown>;
+  entry_count: number;
+}
+
+export interface BlackboardEntriesResponse {
+  entries: BlackboardEntry[];
+  count: number;
 }

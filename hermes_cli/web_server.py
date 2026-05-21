@@ -2933,6 +2933,69 @@ async def get_toolsets():
 
 
 # ---------------------------------------------------------------------------
+# Blackboard endpoints — read-only views into the shared topic store
+# ---------------------------------------------------------------------------
+
+# One cache instance per server process (lazy-init on first request).
+_blackboard_cache: Optional[Any] = None
+
+
+def _get_blackboard_cache():
+    global _blackboard_cache
+    if _blackboard_cache is None:
+        try:
+            from plugins.blackboard.cache import BlackboardCache
+            _blackboard_cache = BlackboardCache(get_hermes_home() / "blackboard_cache.db")
+        except Exception as exc:
+            raise HTTPException(status_code=503, detail=f"Blackboard unavailable: {exc}")
+    return _blackboard_cache
+
+
+@app.get("/api/blackboard/topics")
+async def list_blackboard_topics(search: str = "", limit: int = 200):
+    """List all blackboard topics with optional search filter."""
+    limit = max(1, min(limit, 500))
+    cache = _get_blackboard_cache()
+    topics = cache.get_topics()
+    if search:
+        q = search.lower()
+        topics = [
+            t for t in topics
+            if q in t.get("slug", "").lower() or q in t.get("name", "").lower()
+            or q in t.get("description", "").lower()
+        ]
+    return {"topics": topics[:limit], "total": len(topics)}
+
+
+@app.get("/api/blackboard/topics/{slug}")
+async def get_blackboard_topic(slug: str, limit: int = 50, since: str = ""):
+    """Get topic details including recent entries and metadata."""
+    limit = max(1, min(limit, 200))
+    cache = _get_blackboard_cache()
+    topic = cache.get_topic(slug)
+    if not topic:
+        raise HTTPException(status_code=404, detail=f"Topic '{slug}' not found")
+    # Use tail semantics when no cursor: show most recent `limit` entries.
+    if since:
+        entries = cache.get_entries(slug, since=since, limit=limit)
+    else:
+        entries = cache.get_entries_tail(slug, limit=limit)
+    metadata = cache.get_metadata(slug)
+    return {**topic, "entries": entries, "metadata": metadata, "entry_count": len(entries)}
+
+
+@app.get("/api/blackboard/topics/{slug}/entries")
+async def get_blackboard_entries(slug: str, limit: int = 50, since: str = ""):
+    """Entries-only endpoint for live polling."""
+    limit = max(1, min(limit, 200))
+    cache = _get_blackboard_cache()
+    if not cache.get_topic(slug):
+        raise HTTPException(status_code=404, detail=f"Topic '{slug}' not found")
+    entries = cache.get_entries(slug, since=since or None, limit=limit)
+    return {"entries": entries, "count": len(entries)}
+
+
+# ---------------------------------------------------------------------------
 # Raw YAML config endpoint
 # ---------------------------------------------------------------------------
 

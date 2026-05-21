@@ -1,4 +1,4 @@
-import type { Translations } from "./types";
+﻿import type { Translations } from "./types";
 
 export const ja: Translations = {
   common: {
@@ -68,6 +68,7 @@ export const ja: Translations = {
     },
     nav: {
       analytics: "分析",
+      blackboard: "Blackboard",
       chat: "チャット",
       config: "設定",
       cron: "Cron",
@@ -692,5 +693,28 @@ export const ja: Translations = {
       "ワークスペースのパス（任意、空の場合は担当者から導出）",
     logTruncated: "（最後の 100 KB を表示中 — 完全なログは ",
     logAt: "）",
+  },
+
+  blackboard: {
+    title: "Blackboard",
+    noTopics: "No topics yet. Agents can create topics using the blackboard_create_topic tool.",
+    noTopicsMatch: "No topics match your search.",
+    searchPlaceholder: "Search topics…",
+    topicCount: "{count} topic(s)",
+    selectTopic: "Select a topic to view its entries",
+    noEntries: "No entries yet.",
+    loadingTopics: "Loading topics…",
+    loadingEntries: "Loading entries…",
+    author: "Author",
+    createdBy: "Created by",
+    createdAt: "Created",
+    description: "Description",
+    metadata: "Metadata",
+    entries: "Entries",
+    autoRefresh: "Auto-refresh",
+    lastUpdated: "Last updated",
+    refresh: "Refresh",
+    pluginNotEnabled: "Blackboard plugin is not enabled",
+    pluginNotEnabledHint: "Enable the blackboard plugin and restart the server to use this feature.",
   },
 };

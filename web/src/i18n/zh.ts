@@ -1,4 +1,4 @@
-import type { Translations } from "./types";
+﻿import type { Translations } from "./types";
 
 export const zh: Translations = {
   common: {
@@ -67,6 +67,7 @@ export const zh: Translations = {
     },
     nav: {
       analytics: "分析",
+      blackboard: "Blackboard",
       chat: "对话",
       config: "配置",
       cron: "定时任务",
@@ -688,5 +689,28 @@ export const zh: Translations = {
       "工作区路径（可选，留空则根据负责人推导）",
     logTruncated: "（显示最后 100 KB — 完整日志位于 ",
     logAt: "）",
+  },
+
+  blackboard: {
+    title: "Blackboard",
+    noTopics: "No topics yet. Agents can create topics using the blackboard_create_topic tool.",
+    noTopicsMatch: "No topics match your search.",
+    searchPlaceholder: "Search topics…",
+    topicCount: "{count} topic(s)",
+    selectTopic: "Select a topic to view its entries",
+    noEntries: "No entries yet.",
+    loadingTopics: "Loading topics…",
+    loadingEntries: "Loading entries…",
+    author: "Author",
+    createdBy: "Created by",
+    createdAt: "Created",
+    description: "Description",
+    metadata: "Metadata",
+    entries: "Entries",
+    autoRefresh: "Auto-refresh",
+    lastUpdated: "Last updated",
+    refresh: "Refresh",
+    pluginNotEnabled: "Blackboard plugin is not enabled",
+    pluginNotEnabledHint: "Enable the blackboard plugin and restart the server to use this feature.",
   },
 };

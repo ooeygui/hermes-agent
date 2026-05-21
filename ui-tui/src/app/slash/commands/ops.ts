@@ -713,5 +713,12 @@ export const opsCommands: SlashCommand[] = [
         )
         .catch(ctx.guardedErr)
     }
+  },
+
+  {
+    name: 'blackboard',
+    run: () => {
+      patchOverlayState({ blackboard: true })
+    }
   }
 ]

@@ -1,4 +1,4 @@
-import type { Translations } from "./types";
+﻿import type { Translations } from "./types";
 
 export const uk: Translations = {
   common: {
@@ -68,6 +68,7 @@ export const uk: Translations = {
     },
     nav: {
       analytics: "Аналітика",
+      blackboard: "Blackboard",
       chat: "Чат",
       config: "Конфігурація",
       cron: "Cron",
@@ -691,6 +692,28 @@ export const uk: Translations = {
     workspacePathOptional:
       "шлях робочої області (необов'язково, виводиться з виконавця, якщо порожньо)",
     logTruncated: "(показано останні 100 KB — повний журнал у ",
-    logAt: ")",
+    logAt: "),n  },
+
+  blackboard: {
+    title: "Blackboard",
+    noTopics: "No topics yet. Agents can create topics using the blackboard_create_topic tool.",
+    noTopicsMatch: "No topics match your search.",
+    searchPlaceholder: "Search topics…",
+    topicCount: "{count} topic(s)",
+    selectTopic: "Select a topic to view its entries",
+    noEntries: "No entries yet.",
+    loadingTopics: "Loading topics…",
+    loadingEntries: "Loading entries…",
+    author: "Author",
+    createdBy: "Created by",
+    createdAt: "Created",
+    description: "Description",
+    metadata: "Metadata",
+    entries: "Entries",
+    autoRefresh: "Auto-refresh",
+    lastUpdated: "Last updated",
+    refresh: "Refresh",
+    pluginNotEnabled: "Blackboard plugin is not enabled",
+    pluginNotEnabledHint: "Enable the blackboard plugin and restart the server to use this feature.",
   },
 };

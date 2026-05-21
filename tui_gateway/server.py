@@ -6408,6 +6408,68 @@ def _(rid, params: dict) -> dict:
         return _err(rid, 5033, str(e))
 
 
+# ---------------------------------------------------------------------------
+# Blackboard read-only RPC — for the TUI overlay
+# ---------------------------------------------------------------------------
+_bb_cache: "Any" = None
+
+
+def _get_bb_cache() -> "Any":
+    global _bb_cache
+    if _bb_cache is None:
+        from plugins.blackboard.cache import BlackboardCache
+
+        _bb_cache = BlackboardCache(_hermes_home / "blackboard_cache.db")
+    return _bb_cache
+
+
+@method("blackboard.list")
+def _(rid, params: dict) -> dict:
+    search = str(params.get("search", ""))
+    limit = max(1, min(int(params.get("limit", 200)), 500))
+    try:
+        cache = _get_bb_cache()
+        topics = cache.get_topics()
+        if search:
+            q = search.lower()
+            topics = [
+                t for t in topics
+                if q in t.get("slug", "").lower()
+                or q in t.get("name", "").lower()
+                or q in t.get("description", "").lower()
+            ]
+        return _ok(rid, {"topics": topics[:limit], "total": len(topics)})
+    except ImportError:
+        return _err(rid, 5041, "Blackboard plugin is not installed")
+    except Exception as e:
+        return _err(rid, 5042, str(e))
+
+
+@method("blackboard.get_topic")
+def _(rid, params: dict) -> dict:
+    slug = str(params.get("slug", ""))
+    limit = max(1, min(int(params.get("limit", 50)), 200))
+    since = str(params.get("since", ""))
+    if not slug:
+        return _err(rid, 4010, "slug is required")
+    try:
+        cache = _get_bb_cache()
+        topic = cache.get_topic(slug)
+        if not topic:
+            return _err(rid, 4041, f"topic '{slug}' not found")
+        # Use tail semantics for initial loads (no cursor), ASC for incremental polls.
+        if since:
+            entries = cache.get_entries(slug, since=since, limit=limit)
+        else:
+            entries = cache.get_entries_tail(slug, limit=limit)
+        metadata = cache.get_metadata(slug)
+        return _ok(rid, {**topic, "entries": entries, "metadata": metadata})
+    except ImportError:
+        return _err(rid, 5041, "Blackboard plugin is not installed")
+    except Exception as e:
+        return _err(rid, 5042, str(e))
+
+
 @method("cron.manage")
 def _(rid, params: dict) -> dict:
     action, jid = params.get("action", "list"), params.get("name", "")

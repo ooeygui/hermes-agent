@@ -84,6 +84,7 @@ export interface Translations {
     };
     nav: {
       analytics: string;
+      blackboard: string;
       chat: string;
       config: string;
       cron: string;
@@ -545,6 +546,30 @@ export interface Translations {
       clipboard_unsupported: string;
       tweet_text: string;
     };
+  };
+
+  // ── Blackboard ──
+  blackboard: {
+    title: string;
+    noTopics: string;
+    noTopicsMatch: string;
+    searchPlaceholder: string;
+    topicCount: string;
+    selectTopic: string;
+    noEntries: string;
+    loadingTopics: string;
+    loadingEntries: string;
+    author: string;
+    createdBy: string;
+    createdAt: string;
+    description: string;
+    metadata: string;
+    entries: string;
+    autoRefresh: string;
+    lastUpdated: string;
+    refresh: string;
+    pluginNotEnabled: string;
+    pluginNotEnabledHint: string;
   };
 
   // ── Kanban ──

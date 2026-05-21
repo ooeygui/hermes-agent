@@ -132,6 +132,39 @@ class TestBlackboardCache:
         assert any("entries" in k for k in keys)
         assert any("meta" in k for k in keys)
 
+    def test_get_entries_tail_returns_newest_ascending(self, tmp_path):
+        """get_entries_tail should return the most recent N entries, oldest-first."""
+        c = self._cache(tmp_path)
+        c.store_topic({"slug": "t1", "topic_name": "T", "description": "",
+                       "created_by": "a", "created_at": "2025-01-01T00:00:00+00:00"})
+        # Store 5 entries with sequential timestamps
+        for i in range(1, 6):
+            c.store_entry("t1", {
+                "id": f"e{i}",
+                "content": f"entry {i}",
+                "author": "a",
+                "role": "c",
+                "timestamp": f"2025-01-01T00:0{i}:00+00:00",
+            })
+        # get_entries_tail(limit=3) should return entries 3,4,5 in ASC order
+        tail = c.get_entries_tail("t1", limit=3)
+        assert len(tail) == 3
+        assert tail[0]["id"] == "e3"
+        assert tail[1]["id"] == "e4"
+        assert tail[2]["id"] == "e5"
+        # Verify ascending order (oldest first)
+        assert tail[0]["timestamp"] < tail[1]["timestamp"] < tail[2]["timestamp"]
+
+    def test_get_entries_tail_less_than_limit(self, tmp_path):
+        """get_entries_tail returns all entries when count < limit."""
+        c = self._cache(tmp_path)
+        c.store_topic({"slug": "t1", "topic_name": "T", "description": "",
+                       "created_by": "a", "created_at": "2025-01-01T00:00:00+00:00"})
+        c.store_entry("t1", {"id": "e1", "content": "x", "author": "a",
+                              "role": "c", "timestamp": "2025-01-01T00:01:00+00:00"})
+        tail = c.get_entries_tail("t1", limit=10)
+        assert len(tail) == 1
+
 
 # ---------------------------------------------------------------------------
 # LocalBackend

@@ -17,9 +17,10 @@ separate processes or machines.
 4. [Configuration reference](#configuration-reference)
 5. [Tools reference](#tools-reference)
 6. [CLI reference](#cli-reference)
-7. [Walkthrough: research team (2 agents + 1 human)](#walkthrough-research-team-2-agents--1-human)
-8. [Walkthrough: code-review pipeline](#walkthrough-code-review-pipeline)
-9. [How it works](#how-it-works)
+7. [Dashboard & TUI viewer](#dashboard--tui-viewer)
+8. [Walkthrough: research team (2 agents + 1 human)](#walkthrough-research-team-2-agents--1-human)
+9. [Walkthrough: code-review pipeline](#walkthrough-code-review-pipeline)
+10. [How it works](#how-it-works)
 
 ---
 
@@ -204,6 +205,122 @@ hermes blackboard write sprint_24 "Auth service is done, ready for review"
 
 # Live-stream new entries (Ctrl-C to stop; Zenoh backend recommended for cross-process)
 hermes blackboard watch sprint_24
+```
+
+---
+
+## Dashboard & TUI viewer
+
+The Hermes dashboard and terminal UI both include a read-only live viewer
+for the blackboard — useful for monitoring dozens of active topic streams
+without having to poll the CLI manually.
+
+### Web dashboard
+
+Start the dashboard (`hermes dashboard`) and navigate to
+**Blackboard** in the sidebar (or go to `/blackboard` directly).
+
+```
+http://localhost:6616/blackboard
+```
+
+![Blackboard dashboard screenshot](docs/blackboard-dashboard.png)
+
+The page has two panes:
+
+| Pane | What it shows |
+|---|---|
+| **Left — topic list** | All topics, searchable. Click any topic to open it. Shows topic count. |
+| **Right — entry feed** | The 50 most recent entries for the selected topic, oldest → newest. Topic description, creator, and metadata badges shown at the top. |
+
+**Auto-refresh:** a green spinning icon in the top-right corner means the
+entry feed is polling every 5 seconds for new entries. Click it to toggle
+on/off. The timestamp of the last successful update is shown next to the
+icon. You can also click **Refresh** at any time to force an immediate
+update of both panes.
+
+**Searching topics:** type in the search box at the top of the topic list
+to filter by slug, name, or description. The filter is applied instantly.
+
+**Entry feed cursor:** the viewer always shows the most recent 50 entries
+on initial load. While auto-refresh is active, only new entries (since
+the last seen timestamp) are appended, so the list grows in real time as
+agents write to the topic.
+
+---
+
+### TUI overlay
+
+If you use the terminal UI (`hermes --tui`), type the `/blackboard` command
+(alias `/bb`) to open the full-screen blackboard overlay on top of the
+current session. The overlay replaces the transcript pane but leaves the
+underlying session intact — close it and your conversation is right where
+you left it.
+
+```
+/blackboard
+```
+
+#### Keyboard navigation
+
+| Key | Action |
+|---|---|
+| `j` / `↓` | Move down (topics or entries) |
+| `k` / `↑` | Move up (topics or entries) |
+| `↵` / `l` | Open selected topic (move focus to entry pane) |
+| `h` / `Esc` | Go back to topic list |
+| `/` | Enter search mode — type to filter topics |
+| `Esc` / `Enter` | Exit search mode |
+| `r` | Force-refresh topics and current topic's entries |
+| `q` | Close the blackboard overlay |
+
+Two-pane layout:
+
+```
+┌─────────────────┬──────────────────────────────────────────────┐
+│  🗂 Blackboard   │ PR #142 Code Review  by coordinator           │
+│  (3 topics)     │ Multi-agent review of the auth service refactor│
+│                 │──────────────────────────────────────────────│
+│  ▶ review_pr_142│ agent-security  10:14:05                      │
+│    ai_safety    │ Found hardcoded JWT secret in auth.py:87      │
+│    sprint_24    │                                               │
+│                 │ agent-performance  10:14:22                   │
+│                 │ N+1 query in getUsersByRole() — 47 extra SELECTs│
+│                 │                                               │
+│                 │ coordinator  10:15:01                         │
+│                 │ Summary: block merge — security finding is high│
+└─────────────────┴──────────────────────────────────────────────┘
+  j/k navigate  ↵/l open  / search  r refresh  q close
+```
+
+The entry pane shows the 50 most recent entries on open and polls every
+5 seconds for new ones in the background. A blinking cursor in the topic
+name pane indicates the refresh is active.
+
+---
+
+### API endpoints (for custom tooling)
+
+The dashboard server exposes the blackboard data over REST — useful for
+scripts, CI bots, or external dashboards:
+
+```bash
+# List all topics (optional ?search= and ?limit=)
+curl http://localhost:6616/api/blackboard/topics
+
+# Topic detail + most recent 50 entries
+curl http://localhost:6616/api/blackboard/topics/ai_safety
+
+# Incremental polling — fetch entries newer than a timestamp
+curl "http://localhost:6616/api/blackboard/topics/ai_safety/entries?since=2026-05-20T10:07:00%2B00:00"
+```
+
+All endpoints require the session token unless you configure public API
+access. Pass it as the `X-Hermes-Session` header:
+
+```bash
+TOKEN=$(hermes dashboard token)
+curl -H "X-Hermes-Session: $TOKEN" http://localhost:6616/api/blackboard/topics
 ```
 
 ---

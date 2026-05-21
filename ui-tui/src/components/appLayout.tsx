@@ -18,6 +18,7 @@ import {
 import { PerfPane } from '../lib/perfPane.js'
 
 import { AgentsOverlay } from './agentsOverlay.js'
+import { BlackboardOverlay } from './blackboardOverlay.js'
 import { GoodVibesHeart, StatusRule, StickyPromptTracker, TranscriptScrollbar } from './appChrome.js'
 import { FloatingOverlays, PromptZone } from './appOverlays.js'
 import { Banner, Panel, SessionPanel } from './branding.js'
@@ -337,6 +338,19 @@ const AgentsOverlayPane = memo(function AgentsOverlayPane() {
   )
 })
 
+const BlackboardOverlayPane = memo(function BlackboardOverlayPane() {
+  const { gw } = useGateway()
+  const ui = useStore($uiState)
+
+  return (
+    <BlackboardOverlay
+      gw={gw}
+      onClose={() => patchOverlayState({ blackboard: false })}
+      t={ui.theme}
+    />
+  )
+})
+
 const StatusRulePane = memo(function StatusRulePane({
   at,
   composer,
@@ -396,6 +410,10 @@ export const AppLayout = memo(function AppLayout({
             <PerfPane id="agents">
               <AgentsOverlayPane />
             </PerfPane>
+          ) : overlay.blackboard ? (
+            <PerfPane id="blackboard">
+              <BlackboardOverlayPane />
+            </PerfPane>
           ) : (
             <PerfPane id="transcript">
               <TranscriptPane actions={actions} composer={composer} progress={progress} transcript={transcript} />
@@ -403,7 +421,7 @@ export const AppLayout = memo(function AppLayout({
           )}
         </Box>
 
-        {!overlay.agents && (
+        {!overlay.agents && !overlay.blackboard && (
           <>
             <PerfPane id="prompt">
               <PromptZone

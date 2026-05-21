@@ -186,6 +186,25 @@ class BlackboardCache:
             ).fetchall()
         return [dict(r) for r in rows]
 
+    def get_entries_tail(self, slug: str, limit: int = 50) -> List[Dict[str, Any]]:
+        """Return the *most recent* ``limit`` entries in ascending timestamp order.
+
+        Unlike :meth:`get_entries`, this method sorts descending first (to
+        select the tail), then reverses the result so callers always receive
+        entries oldest-first — consistent with the rest of the API and safe
+        for live-polling cursors.
+        """
+        conn = self._get_read_conn()
+        rows = conn.execute(
+            """
+            SELECT id, slug, content, author, role, timestamp
+            FROM entries WHERE slug = ?
+            ORDER BY timestamp DESC LIMIT ?
+            """,
+            (slug, limit),
+        ).fetchall()
+        return [dict(r) for r in reversed(rows)]
+
     # ------------------------------------------------------------------
     # Metadata
     # ------------------------------------------------------------------

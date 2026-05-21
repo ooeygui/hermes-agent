@@ -1,4 +1,4 @@
-import type { Translations } from "./types";
+﻿import type { Translations } from "./types";
 
 export const zhHant: Translations = {
   common: {
@@ -68,6 +68,7 @@ export const zhHant: Translations = {
     },
     nav: {
       analytics: "分析",
+      blackboard: "Blackboard",
       chat: "對話",
       config: "設定",
       cron: "排程任務",
@@ -692,5 +693,28 @@ export const zhHant: Translations = {
       "工作區路徑（選填，留空則依負責人推導）",
     logTruncated: "（顯示最後 100 KB — 完整日誌位於 ",
     logAt: "）",
+  },
+
+  blackboard: {
+    title: "Blackboard",
+    noTopics: "No topics yet. Agents can create topics using the blackboard_create_topic tool.",
+    noTopicsMatch: "No topics match your search.",
+    searchPlaceholder: "Search topics…",
+    topicCount: "{count} topic(s)",
+    selectTopic: "Select a topic to view its entries",
+    noEntries: "No entries yet.",
+    loadingTopics: "Loading topics…",
+    loadingEntries: "Loading entries…",
+    author: "Author",
+    createdBy: "Created by",
+    createdAt: "Created",
+    description: "Description",
+    metadata: "Metadata",
+    entries: "Entries",
+    autoRefresh: "Auto-refresh",
+    lastUpdated: "Last updated",
+    refresh: "Refresh",
+    pluginNotEnabled: "Blackboard plugin is not enabled",
+    pluginNotEnabledHint: "Enable the blackboard plugin and restart the server to use this feature.",
   },
 };
