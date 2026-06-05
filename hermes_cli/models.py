@@ -1168,26 +1168,38 @@ _PROVIDER_ALIASES = {
 # hit the Portal; this fallback must stay cheap and network-free.
 _PROVIDER_SILENT_DEFAULT_OVERRIDES: dict[str, str] = {
     "nous": "deepseek/deepseek-v4-flash",
+    "foundry-local": "qwen2.5-0.5b",
 }
 
 
 def get_default_model_for_provider(provider: str) -> str:
-    """Return a cost-safe default model for a provider, or "" if unknown.
+    """Return a usable default model for a provider, or "" if unknown.
 
     Used as a NON-INTERACTIVE fallback when a provider is configured but no
     model was ever selected (e.g. ``hermes auth add openai-codex`` without
     ``hermes model``, or a profile that sets ``provider`` with no ``model``).
 
-    For most providers this is the first entry in ``_PROVIDER_MODELS`` — the
-    same model the ``hermes model`` picker offers first. For metered aggregators
-    whose curated list is ordered most-capable-first, that entry is also the
-    most EXPENSIVE one, so silently defaulting to it is a billing footgun. Such
-    providers carry an explicit low-cost override in
-    ``_PROVIDER_SILENT_DEFAULT_OVERRIDES``; a missing model must never
-    auto-escalate to the flagship.
+    Prefer the provider's live/fallback model catalog whenever possible so
+    provider plugins (including Foundry Local) can expose a real model choice
+    instead of an empty string. If the provider has no catalog entry, fall back
+    to the static ``_PROVIDER_MODELS`` list.
     """
-    models = _PROVIDER_MODELS.get(provider, [])
-    override = _PROVIDER_SILENT_DEFAULT_OVERRIDES.get(provider)
+    normalized = normalize_provider(provider)
+    if normalized == "openrouter":
+        return ""
+
+    try:
+        models = provider_model_ids(normalized)
+        if models:
+            override = _PROVIDER_SILENT_DEFAULT_OVERRIDES.get(normalized)
+            if override and override in models:
+                return override
+            return models[0]
+    except Exception:
+        pass
+
+    models = _PROVIDER_MODELS.get(normalized, [])
+    override = _PROVIDER_SILENT_DEFAULT_OVERRIDES.get(normalized)
     if override and override in models:
         return override
     return models[0] if models else ""

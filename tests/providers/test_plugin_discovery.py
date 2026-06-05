@@ -44,7 +44,6 @@ def test_bundled_plugins_discovered():
         assert (child / "plugin.yaml").exists(), f"{child.name} missing plugin.yaml"
 
 
-<<<<<<< HEAD
 def test_all_profiles_register():
     """After discovery, the registry must contain every bundled provider directory.
 
@@ -52,10 +51,6 @@ def test_all_profiles_register():
     directories, not a hardcoded count. Counts shift when providers are
     added/removed; that's expected and shouldn't break CI.
     """
-=======
-def test_all_34_profiles_register():
-    """After discovery, the registry must contain exactly 34 distinct profiles."""
->>>>>>> 88905a2d2 (Bootstrap Foundry Local)
     _clear_provider_caches()
     from providers import list_providers
 
@@ -64,15 +59,11 @@ def test_all_34_profiles_register():
 
     profiles = list_providers()
     names = sorted(p.name for p in profiles)
-<<<<<<< HEAD
     # Some plugin __init__.py files register multiple profiles, so the registry
     # count is >= the directory count (never less).
     assert len(names) >= plugin_dir_count, (
         f"Expected at least {plugin_dir_count} profiles (one per plugin dir), got {len(names)}: {names}"
     )
-=======
-    assert len(names) == 34, f"Expected 34 profiles, got {len(names)}: {names}"
->>>>>>> 88905a2d2 (Bootstrap Foundry Local)
 
     # Spot-check representative providers from different categories
     for required in (

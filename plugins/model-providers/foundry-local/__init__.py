@@ -71,9 +71,9 @@ foundry_local = FoundryLocalProfile(
     # Curated fallback list — common Foundry Local catalog aliases shown
     # when SDK enumeration is unavailable (e.g. SDK not installed yet).
     fallback_models=(
-        "qwen2.5-7b-instruct",
         "qwen2.5-0.5b",
         "phi-4-mini",
+        "qwen2.5-7b-instruct",
         "phi-3.5-mini-instruct",
         "deepseek-r1-distill-qwen-7b",
         "mistral-7b-instruct-v0.2",

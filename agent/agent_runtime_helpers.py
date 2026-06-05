@@ -1317,6 +1317,23 @@ def create_openai_client(agent, client_kwargs: dict, *, reason: str, shared: boo
                 agent._client_log_context(),
             )
             return client
+    if agent.provider in {"foundry-local", "foundry", "foundrylocal"} or str(
+        client_kwargs.get("base_url", "")
+    ).startswith("foundry-local://"):
+        from agent.foundry_local_adapter import FoundryLocalClient
+
+        safe_kwargs = {
+            k: v for k, v in client_kwargs.items()
+            if k in {"api_key", "base_url", "default_headers", "timeout"}
+        }
+        client = FoundryLocalClient(**safe_kwargs)
+        _ra().logger.info(
+            "Foundry Local native client created (%s, shared=%s) %s",
+            reason,
+            shared,
+            agent._client_log_context(),
+        )
+        return client
     # Inject TCP keepalives so the kernel detects dead provider connections
     # instead of letting them sit silently in CLOSE-WAIT (#10324).  Without
     # this, a peer that drops mid-stream leaves the socket in a state where

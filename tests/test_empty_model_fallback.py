@@ -24,6 +24,15 @@ class TestGetDefaultModelForProvider:
         from hermes_cli.models import get_default_model_for_provider
         assert get_default_model_for_provider("nonexistent-provider") == ""
 
+    def test_foundry_local_uses_provider_catalog_default(self):
+        """Foundry Local should resolve a real Hermes default model instead of empty."""
+        from hermes_cli.models import get_default_model_for_provider
+
+        result = get_default_model_for_provider("foundry-local")
+
+        assert result == "qwen2.5-0.5b"
+        assert get_default_model_for_provider("foundry") == result
+
     def test_custom_provider_returns_empty(self):
         """Custom provider has no model catalog — should return empty."""
         from hermes_cli.models import get_default_model_for_provider
